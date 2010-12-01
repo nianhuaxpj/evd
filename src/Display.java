@@ -1,28 +1,28 @@
 import java.applet.Applet;
 
-import sun.plugin2.message.GetProxyMessage;
-
 import net.propero.rdp.Rdesktop;
 import net.propero.rdp.RdesktopException;
-import net.propero.rdp.applet.RdpApplet;
 
-import com.tigervnc.rfb.message.SetPixelFormat;
 import com.tigervnc.vncviewer.VncViewer;
 
 public class Display extends Applet{
 
 	public void init(){
+		System.out.println("version 1");
 		String ip = getParameter("ip");
 		String port = getParameter("port");
-		String type = getParameter("type");
-		startDislay(ip, port, type);
+		String displaytype = getParameter("displaytype");
+		System.out.println("Starting " + displaytype + " display on " + ip + ":" + port);
+		startDislay(ip, port, displaytype);
 	}
 	
 	public void startVNC(String ip, String port){
+		System.out.println("Starting vnc ...");
 		VncViewer.main(new String[]{"HOST", ip,"PORT", port});
 	}
 	
 	public void startRDP(String ip, String port){
+		System.out.println("Starting rdp ...");
 		try{
 			String screensize = getParameter("screensize");
 			String windowtitle = getParameter("windowtitle");
