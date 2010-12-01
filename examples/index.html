@@ -28,7 +28,7 @@ form {
       <input id="host" type="text" required="required" placeholder="host name" value="valve001.irigo.com" />
       <input id="localport" type="text" required="required" placeholder="local port" value="5900" />
       <input id="remoteip" type="text" required="required" placeholder="remote ip" value="10.0.0.112" />
-      <input id="remoteport" type="text" name="remoteport" required="required" placeholder="remote port" value="6107" />
+      <input id="remoteport" type="text" name="remoteport" required="required" placeholder="remote port" value="5996" />
       <input id="username" type="text" name="username" required="required" placeholder="username" value="jakob"/>
 
       <select id="type">
@@ -67,100 +67,44 @@ form {
 <option value="sv">sv</option>
 <option value="tk">tk</option>
 <option value="tr">tr</option>
-      <select>
+      </select>
     </form>
+
+    <div id="applets"></div>
 
     <button id="startButton">Start Tunnel</button>
 
-    <div id="applet" style="display:none" />
-
     <footer></footer> 
+
+    <script src="//ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/dojo.xd.js"></script>
+    <script src="/js/tunnel.js"></script>
+    <script src="/js/display.js"></script>
     
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
-    <script>
-String.prototype.substitute = function(/*Object*/map){
-	return this.replace(/\$\{([^\s\:\}]+)(?:\:([^\s\:\}]+))?\}/g,
-		function(match, key, format){
-			var value = map[key];
-			return value.toString();
-		}); // String
-};
-
-var display = {
-  create: function(args){
-    var t = [
-'<applet archive="/applet/steam.jar?v=' + new Date().getTime() + '" id="tunnel" code="Display" codebase="/applet/steam.jar" width="1" height="1">',
-  '<param name="ip" value="localhost" />',
-  '<param name="port" value="${localport}" />',
-  '<param name="type" value="${type}" />',
-  '<param name="screensize" value="${screensize}" />',
-  '<param name="lang" value="${lang}" />',
-  '<param name="windowtitle" value="${windowtitle}" />',
-        
-'</applet>'].join('');
-    $('#applet').after(t.substitute(args));
-  }
-};
-
-var tunnel = {
-  subscribers: {},
-
-  subscribe: function(/*String*/ event_name, /*Function*/ fct){
-    var list = this.subscribers[event_name] || [];
-    list.push(fct);
-    this.subscribers[event_name] = list;
-  },
-
-  publish: function(event, message){
-    $.each(this.subscribers[event], function(i, fct){
-       fct(message);
-    });
-  },
-
-  create: function(args){
-    $('#applet').html("ssh -L ${localport}:${remoteip}:${remoteport} ${username}@${host}".substitute(args)).fadeIn();
-    var t = [
-'<applet archive="/applet/steam.jar?v=' + new Date().getTime() + '" id="tunnel" code="Tunnel" codebase="/applet/steam.jar" width="1" height="1">',
-  '<param name="host" value="${host}" />',
-  '<param name="remoteip" value="${remoteip}" />',
-  '<param name="localport" value="${localport}" />',
-  '<param name="remoteport" value="${remoteport}" />',
-  '<param name="username" value="${username}" />',
-  '<param name="js" value="tunnel" />',      
-'</applet>'].join('');
-    $('#applet').html(t.substitute(args));
-  }
-};
-
-$(document).ready(function(){
+  <script>
+dojo.ready(function(){
 
   function getArgs(){
     return {
-      host: $('#host').val(),
-      remoteip: $('#remoteip').val(),
-      remoteport: $('#remoteport').val(),
-      username: $('#username').val(),
-      localport: $('#localport').val(),
-      type: $('#type').val(),
-      screensize: $('#screensize').val(),
-      lang: $('#lang').val(),
-      windowtitle: "SteamEngine"
+      host: dojo.byId('host').value,
+      remoteip: dojo.byId('remoteip').value,
+      remoteport: dojo.byId('remoteport').value,
+      username: dojo.byId('username').value,
+      localport: dojo.byId('localport').value,
+      displaytype: dojo.byId('type').value,
+      screensize: dojo.byId('screensize').value,
+      lang: dojo.byId('lang').value,
+      windowtitle: "SteamEngine",
+      appendto: "applets"
     };
   }
 
-  tunnel.subscribe("Init", function(){
-    console.log("Init");
-    display.create(getArgs());
-  });
-
-  tunnel.subscribe("Error", function(msg){
+  dojo.connect(tunnel, 'onError', function(msg){
     alert(msg);
   });
 
-  $('#startButton').click(function(){
-    tunnel.create(getArgs());
+  dojo.query('#startButton').onclick(function(){
+    display.create(getArgs());
   });
-
 });
     </script>
   </body>

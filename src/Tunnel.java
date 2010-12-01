@@ -1,4 +1,5 @@
 import java.applet.Applet;
+import java.net.BindException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
@@ -11,7 +12,7 @@ import com.jcraft.jsch.Session;
 
 public class Tunnel extends Applet{
 
-	// parameters 
+	private String callback;
 	private JSObject js;
 	
 	@Override
@@ -21,22 +22,16 @@ public class Tunnel extends Applet{
 
 	@Override
 	public void init() {
-		String host;
-		String remoteip;
-		int localport;
-		int remoteport;
-		String username;
-		host = getParameter("host");
-		localport = Integer.parseInt(getParameter("localport"), 10);
-		remoteport = Integer.parseInt(getParameter("remoteport"), 10);
-		remoteip = getParameter("remoteip");
-		username = getParameter("username");
-		try{
-			js = (JSObject)JSObject.getWindow(this).eval(getParameter("js"));
+		String username = getParameter("username");
+		String host = getParameter("host");
+		int localport = Integer.parseInt(getParameter("localport"), 10);
+		int remoteport = Integer.parseInt(getParameter("remoteport"), 10);
+		String remoteip = getParameter("remoteip");
+		js = JSObject.getWindow(this);
+		if(js == null){
+			throw new RuntimeException("WTF? Stupid browser");
 		}
-		catch(JSException e){
-			e.printStackTrace();
-		}
+		callback = getParameter("callback");
 		boolean success = elevatePrivsAndStartTunnel(localport, remoteip, remoteport, host, username);
 		if(success){
 			publishEvent("Init");
@@ -44,14 +39,13 @@ public class Tunnel extends Applet{
 	}
 	
 	private void publishEvent(String event, String message){
-		if(js != null){
-			Object[] args = new String[]{event, message};
-			js.call("publish", args);
-		}
+		String args = "\"" + event + "\", \"" + message + "\"";
+		System.out.println(callback + "(" + args + ")");
+		js.eval(callback + "(" + args + ")");
 	}
 	
 	private void publishEvent(String event){
-		publishEvent(event, null);
+		publishEvent(event, "");
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -79,8 +73,8 @@ public class Tunnel extends Applet{
 			System.out.println("connected");
 		}
 		catch(JSchException e){
-			publishEvent("Error", e.getMessage() + "\n" + e.getCause().getMessage());
-			e.printStackTrace();
+			publishEvent("Error", e.getMessage() + " " + e.getCause());
+			e.printStackTrace();				
 			return false;
 		}
 		return true;
