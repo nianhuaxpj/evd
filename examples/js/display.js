@@ -1,14 +1,16 @@
+dojo.require("dojo.string");
 var display = {
 
   _start_display: function(args){
-    console && console.log("Starting display ...", args);    
+    args = dojo.mixin({localport:"",displaytype:"", screensize:"",lang:"",windowtitle:""}, args);
     var t = [
 '<object type="application/x-java-applet" id="display" width="1" height="1">',
   '<param name="mayscript" value="true">',
-  '<param name="archive" value="/applet/evd.jar?v=' + new Date().getTime() + '">',
+  '<param name="archive" value="/applet/evd.jar">',
   '<param name="code" value="Display" >',
   '<param name="ip" value="localhost" >',
   '<param name="port" value="${localport}" >',
+  '<param name="host" value="localhost" >',
   '<param name="displaytype" value="${displaytype}" >',
   '<param name="screensize" value="${screensize}" >',
   '<param name="lang" value="${lang}" >',

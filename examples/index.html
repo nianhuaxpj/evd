@@ -98,8 +98,8 @@ dojo.ready(function(){
     };
   }
 
-  dojo.connect(tunnel, 'onError', function(msg){
-    alert(msg);
+  dojo.connect(tunnel, 'onError', function(type, msg){
+    alert(type + " " + msg);
   });
 
   dojo.query('#startButton').onclick(function(){

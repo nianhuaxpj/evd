@@ -12,7 +12,7 @@ root_path = os.path.abspath(os.path.dirname(__file__))
 @Request.application
 def app(request):
     if request.path == '/':
-        return Response(file("index.html").read(),content_type="text/html")
+        return Response(file(os.path.join(root_path, "index.html")).read(),content_type="text/html")
     else:
         return BadRequest()
 

@@ -5,23 +5,23 @@ var tunnel = {
   // name of this object
   _name: "tunnel",
 
-  publish: function(/*String*/event, /*String*/message){
+  publish: function(/*String*/event){
+    var _exception, _message;
     switch(event){
       case "Init":
         this.onInit();
         break;
-      case "Error":
-        this.onError(message);
-        break;
       default:
-        this.onError(message);
+        _exception = arguments[1] || "";
+        _message = arguments[2] || "";
+        this.onError(_exception, _message);
         break;
     }
   },
 
   onInit: function(){},
 
-  onError: function(message){},
+  onError: function(exception, message){},
   
   create: function(args){
     var t = [

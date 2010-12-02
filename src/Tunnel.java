@@ -1,9 +1,7 @@
 import java.applet.Applet;
-import java.net.BindException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 
-import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 
 import com.jcraft.jsch.JSch;
@@ -15,8 +13,13 @@ public class Tunnel extends Applet{
 	private String callback;
 	private JSObject js;
 	
+	// shared accross applets loaded with the same uri (same class loader) 
+	private static Session session;
+	
 	@Override
 	public void destroy() {
+		System.out.println("destroying tunnel ...");
+		session.disconnect();
 		super.destroy();
 	}
 
@@ -38,8 +41,11 @@ public class Tunnel extends Applet{
 		}
 	}
 	
-	private void publishEvent(String event, String message){
-		String args = "\"" + event + "\", \"" + message + "\"";
+	private void publishEvent(String event, String ... messages){
+		String args = "\"" + event + "\"";
+		for(String s : messages){
+			args += ", \"" + s + "\""; 
+		}		
 		System.out.println(callback + "(" + args + ")");
 		js.eval(callback + "(" + args + ")");
 	}
@@ -62,18 +68,19 @@ public class Tunnel extends Applet{
 	
 	public boolean startTunnel(int localport, String remoteip, int remoteport, String host, String username){
 		System.out.println("ssh -L " + localport + ":" + remoteip + ":" + remoteport + " " + username + "@" + host);
-
-		JSch ssh = new JSch();
-		
 		try{
-			Session session = ssh.getSession(username, host, 22);
+			if(session != null){
+				System.out.println("destryoing existing tunnel ...");
+				session.disconnect();
+			}
+			session = new JSch().getSession(username, host, 22);			
 			session.setUserInfo(new User());
 			session.connect();
 			session.setPortForwardingL(localport, remoteip, remoteport);
-			System.out.println("connected");
 		}
 		catch(JSchException e){
-			publishEvent("Error", e.getMessage() + " " + e.getCause());
+			Throwable cause = e.getCause();
+			publishEvent("Error", cause.getClass().getSimpleName(), cause.getMessage());
 			e.printStackTrace();				
 			return false;
 		}

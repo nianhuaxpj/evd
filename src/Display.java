@@ -16,9 +16,18 @@ public class Display extends Applet{
 		startDislay(ip, port, displaytype);
 	}
 	
+	@Override
+	public void destroy() {
+		System.out.println("destroying display ...");
+	}
+
 	public void startVNC(String ip, String port){
 		System.out.println("Starting vnc ...");
-		VncViewer.main(new String[]{"HOST", ip,"PORT", port});
+		VncViewer v = new VncViewer();
+		v.mainArgs = new String[]{"HOST", ip,"PORT", port};
+		v.inSeparateFrame = true;
+		v.init();
+		v.start();
 	}
 	
 	public void startRDP(String ip, String port){
@@ -27,6 +36,10 @@ public class Display extends Applet{
 			String screensize = getParameter("screensize");
 			String windowtitle = getParameter("windowtitle");
 			String lang = getParameter("lang");
+			
+			// so the JVM is not shutdown on exit
+			// which causes Firefox mac to shutdown
+			net.propero.rdp.Common.underApplet = true;
 			Rdesktop.main(new String[]{"-g",screensize,"-m", lang, ip + ":" + port, "-T", windowtitle});
 		}
 		catch(RdesktopException e){
