@@ -8,6 +8,8 @@
     <meta name="description" content="Java SSH Tunnel, VNC / RDP display example">
     <meta name="author" content="Jakob A. Dam">
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4/dojo/resources/dojo.css"> 
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4/dijit/themes/tundra/tundra.css">
     <style>
 input {
   width: 200px;
@@ -20,16 +22,16 @@ form {
 }
     </style>
   </head>
-  <body>
+  <body class="tundra">
     <nav></nav>
     <h1>VNC or RDP through SSH in the browser</h1>
 
     <form>
-      <input id="host" type="text" required="required" placeholder="host name" value="valve001.irigo.com" />
-      <input id="localport" type="text" required="required" placeholder="local port" value="5900" />
-      <input id="remoteip" type="text" required="required" placeholder="remote ip" value="10.0.0.112" />
-      <input id="remoteport" type="text" name="remoteport" required="required" placeholder="remote port" value="5996" />
-      <input id="username" type="text" name="username" required="required" placeholder="username" value="jakob"/>
+      <input id="host" type="text" required="required" placeholder="host name" value="valve001.irigo.com" >
+      <input id="localport" type="text" required="required" placeholder="local port" value="5900" >
+      <input id="remoteip" type="text" required="required" placeholder="remote ip" value="10.0.0.112" >
+      <input id="remoteport" type="text" name="remoteport" required="required" placeholder="remote port" value="5996" >
+      <input id="username" type="text" name="username" required="required" placeholder="username" value="jakob">
 
       <select id="type">
         <option value="vnc">vnc</option>
@@ -81,20 +83,21 @@ form {
     <script src="/js/display.js"></script>
     
   <script>
-dojo.ready(function(){
+var version = new Date().getTime();
 
+dojo.ready(function(){
   function getArgs(){
     return {
+      appendto: "applets",
+      displaytype: dojo.byId('type').value,
       host: dojo.byId('host').value,
+      lang: dojo.byId('lang').value,
+      localport: dojo.byId('localport').value,
       remoteip: dojo.byId('remoteip').value,
       remoteport: dojo.byId('remoteport').value,
-      username: dojo.byId('username').value,
-      localport: dojo.byId('localport').value,
-      displaytype: dojo.byId('type').value,
       screensize: dojo.byId('screensize').value,
-      lang: dojo.byId('lang').value,
-      windowtitle: "SteamEngine",
-      appendto: "applets"
+      username: dojo.byId('username').value,
+      windowtitle: "SteamEngine"
     };
   }
 

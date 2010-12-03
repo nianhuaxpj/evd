@@ -6,7 +6,7 @@ var display = {
     var t = [
 '<object type="application/x-java-applet" id="display" width="1" height="1">',
   '<param name="mayscript" value="true">',
-  '<param name="archive" value="/applet/evd.jar">',
+  '<param name="archive" value="/applet/evd.jar?v=' + version + '">',
   '<param name="code" value="Display" >',
   '<param name="ip" value="localhost" >',
   '<param name="port" value="${localport}" >',
@@ -21,7 +21,7 @@ var display = {
 
   create: function(args){
 
-    var handle = dojo.connect(tunnel, "onInit", function(){
+    var handle = dojo.connect(tunnel, "onConnect", function(){
       display._start_display(args);
       dojo.disconnect(handle);                          
     });

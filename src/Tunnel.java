@@ -7,13 +7,17 @@ import netscape.javascript.JSObject;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
+import com.jcraft.jsch.UserInfo;
 
 public class Tunnel extends Applet{
 
 	private String callback;
 	private JSObject js;
-	
-	// shared accross applets loaded with the same uri (same class loader) 
+
+	private static boolean is_wrong_password;
+		
+	// note: static variables are shared accross applets loaded with the same uri -
+	// they have the same class loader 
 	private static Session session;
 	
 	@Override
@@ -25,20 +29,9 @@ public class Tunnel extends Applet{
 
 	@Override
 	public void init() {
-		String username = getParameter("username");
-		String host = getParameter("host");
-		int localport = Integer.parseInt(getParameter("localport"), 10);
-		int remoteport = Integer.parseInt(getParameter("remoteport"), 10);
-		String remoteip = getParameter("remoteip");
-		js = JSObject.getWindow(this);
-		if(js == null){
-			throw new RuntimeException("WTF? Stupid browser");
-		}
+		js = JSObject.getWindow(this);			
 		callback = getParameter("callback");
-		boolean success = elevatePrivsAndStartTunnel(localport, remoteip, remoteport, host, username);
-		if(success){
-			publishEvent("Init");
-		}
+		publishEvent("Init");
 	}
 	
 	private void publishEvent(String event, String ... messages){
@@ -47,7 +40,9 @@ public class Tunnel extends Applet{
 			args += ", \"" + s + "\""; 
 		}		
 		System.out.println(callback + "(" + args + ")");
-		js.eval(callback + "(" + args + ")");
+		if(js != null){
+			js.eval(callback + "(" + args + ")");
+		}
 	}
 	
 	private void publishEvent(String event){
@@ -55,40 +50,72 @@ public class Tunnel extends Applet{
 	}
 	
 	@SuppressWarnings("unchecked")
-	private boolean elevatePrivsAndStartTunnel(final int localport, final String remoteip, final int remoteport, final String host, final String username){
+	private void elevatePrivsAndStartTunnel(final int localport, final String remoteip, final int remoteport, final String host, final String username, final String password){
 		
-		return (Boolean)AccessController.doPrivileged(new PrivilegedAction() {
+		AccessController.doPrivileged(new PrivilegedAction() {
 
 			@Override
 			public Object run() {
-				return startTunnel(localport, remoteip, remoteport, host, username);
+				startTunnel(localport, remoteip, remoteport, host, username, password);
+				return null;
 			}	
 		});
 	}
 	
-	public boolean startTunnel(int localport, String remoteip, int remoteport, String host, String username){
-		System.out.println("ssh -L " + localport + ":" + remoteip + ":" + remoteport + " " + username + "@" + host);
-		try{
+	public void log(String ... args){
+		StringBuilder sb = new StringBuilder();
+		for(String s : args){
+			sb.append(",");
+			sb.append(s);
+		}
+		System.out.println(sb.toString());
+	}
+	
+	public void start(String localport, String remoteip, String remoteport, String host, String username, String password){
+		log("start(", localport, remoteip, remoteport, host, username, password);
+		int _localport = Integer.parseInt(localport, 10);
+		int _remoteport = Integer.parseInt(remoteport, 10);
+		elevatePrivsAndStartTunnel(_localport, remoteip, _remoteport, host, username, password);
+	}
+	
+	private void startTunnel(int localport, String remoteip, int remoteport, String host, String username, String password){
+		System.out.println("ssh -L " + localport + ":" + remoteip + ":" + remoteport + " " + username + "@" + host + " pwd:" + password);
+        try{
 			if(session != null){
 				System.out.println("destryoing existing tunnel ...");
 				session.disconnect();
 			}
-			session = new JSch().getSession(username, host, 22);			
-			session.setUserInfo(new User());
+			session = new JSch().getSession(username, host, 22);
+			session.setPassword(password);
+			session.setUserInfo(new SimpleUser());
 			session.connect();
 			session.setPortForwardingL(localport, remoteip, remoteport);
+			publishEvent("Connected");
 		}
 		catch(JSchException e){
-			Throwable cause = e.getCause();
-			publishEvent("Error", cause.getClass().getSimpleName(), cause.getMessage());
-			e.printStackTrace();				
-			return false;
+			e.printStackTrace();							
+			if(is_wrong_password){
+				publishEvent("PasswordError");
+				is_wrong_password = false;
+			}
+			else{
+				Throwable cause = e.getCause();
+				publishEvent("Error", cause.getMessage());
+			}
 		}
-		return true;
 	}
 	
-	public static void main(String[] args){
-		Tunnel t = new Tunnel();
-		t.startTunnel(5900, "10.0.0.112", 6107, "valve001.irigo.com", "jakob");
-	}
+	class SimpleUser implements UserInfo{
+		public String getPassword(){ 
+			// returning null will cause us to go into the JSchException handler in startTunnel
+			// better suggestions for figuring out if the password is wrong?
+			is_wrong_password = true;
+			return null; 
+		}
+		public boolean promptYesNo(String str){return true;}
+		public String getPassphrase(){ return null; }
+		public boolean promptPassphrase(String message){return true; }
+		public boolean promptPassword(String message){return true;}
+		public void showMessage(String message){System.out.println(message);}
+	}   
 }
