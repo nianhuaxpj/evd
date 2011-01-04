@@ -23,15 +23,52 @@ public class Tunnel extends Applet{
 	@Override
 	public void destroy() {
 		System.out.println("destroying tunnel ...");
-		session.disconnect();
+		elevatePrivsAndDisconnect();
+		publishEvent("Destroyed");
 		super.destroy();
 	}
 
 	@Override
 	public void init() {
 		js = JSObject.getWindow(this);			
-		callback = getParameter("callback");
+		callback = getRequiredParameter("callback");
 		publishEvent("Init");
+	}
+	
+	public void connect(String localport, String remoteip, String remoteport, String host, String username, String password){
+		System.out.println("connect " + localport + ":" + remoteip + ":" + remoteport + " host " + host + " " + username);
+		int _localport = Integer.parseInt(localport, 10);
+		int _remoteport = Integer.parseInt(remoteport, 10);
+		elevatePrivsAndStartTunnel(_localport, remoteip, _remoteport, host, username, password);
+	}
+	
+	public void disconnect(){
+		elevatePrivsAndDisconnect();
+	}
+	
+	@SuppressWarnings("unchecked")
+	private void elevatePrivsAndDisconnect(){
+		AccessController.doPrivileged(new PrivilegedAction() {
+
+			@Override
+			public Object run() {
+				System.out.println("Disconnecting session ...");
+				session.disconnect();
+				publishEvent("Disconnect");
+				return null;
+			}	
+		});
+	}
+	//
+	// private methods underneath
+	//
+	
+	private String getRequiredParameter(String name){
+		String value = getParameter(name);
+		if(value == null){
+			throw new RuntimeException("Missing parameter" + name);  
+		}
+		return value;
 	}
 	
 	private void publishEvent(String event, String ... messages){
@@ -62,26 +99,10 @@ public class Tunnel extends Applet{
 		});
 	}
 	
-	public void log(String ... args){
-		StringBuilder sb = new StringBuilder();
-		for(String s : args){
-			sb.append(",");
-			sb.append(s);
-		}
-		System.out.println(sb.toString());
-	}
-	
-	public void start(String localport, String remoteip, String remoteport, String host, String username, String password){
-		log("start(", localport, remoteip, remoteport, host, username, password);
-		int _localport = Integer.parseInt(localport, 10);
-		int _remoteport = Integer.parseInt(remoteport, 10);
-		elevatePrivsAndStartTunnel(_localport, remoteip, _remoteport, host, username, password);
-	}
-	
 	private void startTunnel(int localport, String remoteip, int remoteport, String host, String username, String password){
 		System.out.println("ssh -L " + localport + ":" + remoteip + ":" + remoteport + " " + username + "@" + host + " pwd:" + password);
         try{
-			if(session != null){
+			if(session != null && session.isConnected()){
 				System.out.println("destryoing existing tunnel ...");
 				session.disconnect();
 			}
@@ -105,6 +126,8 @@ public class Tunnel extends Applet{
 		}
 	}
 	
+	// We handle most of the user logic in JS
+	// so this is pretty much just a stub.
 	class SimpleUser implements UserInfo{
 		public String getPassword(){ 
 			// returning null will cause us to go into the JSchException handler in startTunnel

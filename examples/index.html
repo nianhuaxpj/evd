@@ -8,8 +8,8 @@
     <meta name="description" content="Java SSH Tunnel, VNC / RDP display example">
     <meta name="author" content="Jakob A. Dam">
     <meta name="viewport" content="width=device-width; initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4/dojo/resources/dojo.css"> 
-    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.4/dijit/themes/tundra/tundra.css">
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dojo/resources/dojo.css"> 
+    <link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/dojo/1.5/dijit/themes/tundra/tundra.css">
     <style>
 input {
   width: 200px;
@@ -88,25 +88,25 @@ var version = new Date().getTime();
 dojo.ready(function(){
   function getArgs(){
     return {
-      appendto: "applets",
-      displaytype: dojo.byId('type').value,
+      append_to: "applets",
+      display_type: dojo.byId('type').value,
       host: dojo.byId('host').value,
       lang: dojo.byId('lang').value,
-      localport: dojo.byId('localport').value,
-      remoteip: dojo.byId('remoteip').value,
-      remoteport: dojo.byId('remoteport').value,
-      screensize: dojo.byId('screensize').value,
+      local_port: dojo.byId('localport').value,
+      remote_ip: dojo.byId('remoteip').value,
+      remote_port: dojo.byId('remoteport').value,
+      screen_size: dojo.byId('screensize').value,
       username: dojo.byId('username').value,
-      windowtitle: "SteamEngine"
+      window_title: "Steam Engine"
     };
   }
 
-  dojo.connect(tunnel, 'onError', function(type, msg){
-    alert(type + " " + msg);
+  dojo.connect(tunnel, 'onError', function(msg){
+    alert(msg);
   });
 
   dojo.query('#startButton').onclick(function(){
-    display.create(getArgs());
+    display.start(getArgs());
   });
 });
     </script>

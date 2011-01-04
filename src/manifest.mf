@@ -1,4 +1,3 @@
 Manifest-Version: 1.0
 Created-By: Cabo Communications A/S
-Class-Path: vnc.jar rdp.jar jsch-0.1.44.jar 
 
