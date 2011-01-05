@@ -1,4 +1,3 @@
-dojo.require("dojo.string");
 dojo.require("dijit.form.Form");
 dojo.require("dijit.form.Button");
 dojo.require("dijit.form.TextBox");

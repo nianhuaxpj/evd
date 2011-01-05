@@ -41,8 +41,12 @@ public class Display extends Applet{
 				"port", port, 
 				"window_title", window_title, 
 				"show_controls", "no", 
-				"new_window", "yes",
-				"applet", "yes"});
+				"new_window", "yes"
+				});
+		
+		// the only reason to do so is that system.exit shuts down
+		// FF and Safari on the Mac.
+		VncViewer.inAnApplet = true;
 	}
 	
 	public void startRDP(){

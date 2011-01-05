@@ -1,5 +1,4 @@
 dojo.require("dojo.string");
-dojo.require("dojo.string");
 var display = {
   
   _name: "display",
@@ -51,7 +50,6 @@ var display = {
   
   start: function(args){
     var self = this;
-    console.log('display.start', args);
     display.destroy('display');
 
     var handle = dojo.connect(tunnel, "onConnect", function(){
